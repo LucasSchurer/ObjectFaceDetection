@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Real-Time Object and Face Detection</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div id="container">
+    <table>
+        <tr>
+            <td>Plot Classification</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="plotClassificationCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Plot Object Confidence</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="plotObjectConfidenceCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Detect Faces</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="detectFacesCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Plot Face Distance</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="plotFaceDistanceCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Stop at first match</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="stopFirstMatchCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Show only best match</td>
+            <td>
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox", id="showOnlyBestMatchCheckbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <input type="number" id="fpsInput" placeholder="FPS" min="1" max="60", value="30">
+    <button id="toggleButton" onclick="toggleCapture()">Start Tracking</button>
+    <input type="string" id="nameInput" placeholder="NAME">
+    <button id="saveFace" onclick="saveFace()">Save Face</button>
+
+    <div>
+        <video autoplay="true" id="videoElement"></video>
+        <img id="uploadedImage" src="">
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

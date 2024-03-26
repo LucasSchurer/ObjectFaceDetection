@@ -36,13 +36,8 @@ class Model() :
 
             name = ' '.join(name)
 
-            embedding = self.load_face_embedding(f'{saved_faces_embeddings_dir}/{file}')
+            embedding = np.load(f'{saved_faces_embeddings_dir}/{file}')
             self.saved_faces.append((name, embedding))
-    
-    def load_face_embedding(self, file) -> np.ndarray :
-        face_embedding = np.load(file)
-
-        return face_embedding
     
     def detect_save_face_embedding(self, name : str, img: np.ndarray, save_directory = '../saved_faces', save_image = True) :
         face = self.mtcnn(img)
@@ -151,7 +146,7 @@ class Model() :
         x1_tensor = self.img_to_tensor(x1)
         x2_tensor = self.img_to_tensor(x2)
 
-        return self.face_match_tensor(x1=x1_tensor, x2=x2_tensor)
+        return self.face_match_tensor(x1=x1_tensor, x2=x2_tensor, match_threshold=match_threshold)
 
     def face_match_tensor(self, x1: Tensor, x2: Tensor, match_threshold = 0.7) :
         x1_embedding = self.to_embedding(x1)

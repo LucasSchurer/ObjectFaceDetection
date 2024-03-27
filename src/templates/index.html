@@ -9,23 +9,11 @@
 <div id="container">
     <table>
         <tr>
-            <td>Plot Classification</td>
+            <td>Detect Objects</td>
             <td>
                 <div class="switch-container">
                     <label class="switch">
-                        <input type="checkbox", id="plotClassificationCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td>Plot Object Confidence</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="plotObjectConfidenceCheckbox">
+                        <input type="checkbox", id="detectObjectsCheckbox">
                         <span class="slider round"></span>
                     </label>
                 </div>
@@ -45,40 +33,17 @@
         </tr>
 
         <tr>
-            <td>Plot Face Distance</td>
+            <td>Recognize Faces</td>
             <td>
                 <div class="switch-container">
                     <label class="switch">
-                        <input type="checkbox", id="plotFaceDistanceCheckbox">
+                        <input type="checkbox", id="recognizeFacesCheckbox">
                         <span class="slider round"></span>
                     </label>
                 </div>
             </td>
         </tr>
-
-        <tr>
-            <td>Stop at first match</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="stopFirstMatchCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td>Show only best match</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="showOnlyBestMatchCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
+        
     </table>
 
     <input type="number" id="fpsInput" placeholder="FPS" min="1" max="60", value="30">

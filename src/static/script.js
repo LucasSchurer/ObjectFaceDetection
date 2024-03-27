@@ -6,13 +6,9 @@ var intervalId;
 var capturing = false;
 var lastRequest = null;
 
-var plotClassification = document.getElementById('plotClassificationCheckbox')
-var plotObjectConfidence = document.getElementById('plotObjectConfidenceCheckbox')
-
+var detect_objects = document.getElementById('detect_objects')
 var detectFacesCheckbox = document.getElementById('detectFacesCheckbox')
-var plotFaceDistanceCheckbox = document.getElementById('plotFaceDistanceCheckbox')
-var stopFirstMatchCheckbox = document.getElementById('stopFirstMatchCheckbox')
-var showOnlyBestMatchCheckbox = document.getElementById('showOnlyBestMatchCheckbox')
+var recognizeFacesCheckbox = document.getElementById('recognizeFacesCheckbox')
 
 if (navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -97,15 +93,9 @@ function captureFrame() {
 
     xhr.send(JSON.stringify({ 
         frame: imageDataURL,
-        
-        plot_classification: plotClassification.checked,
-        plot_object_confidence: plotObjectConfidence.checked,
-        
         detect_faces: detectFacesCheckbox.checked,
-        plot_face_distance: plotFaceDistanceCheckbox.checked,
-        stop_first_match: stopFirstMatchCheckbox.checked,
-        showOnlyBestMatchCheckbox: showOnlyBestMatchCheckbox.checked,
-        
+        detect_objects: detectObjectsCheckbox.checked,
+        recognize_faces: recognizeFacesCheckbox.checked
     }));
 
     lastRequest = xhr;

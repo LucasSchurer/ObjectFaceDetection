@@ -93,14 +93,14 @@ def detect_image(
         final_img = model.detect_objects(final_img)
 
     if detect_faces or recognize_faces:
-        df_img, df_boxes, df_confs, df_landmarks = model.detect_faces(final_img)
+        df_img, faces, boxes, _ = model.detect_faces(final_img, draw_confidence=True)
 
         if detect_faces:
             final_img = df_img
 
-        if recognize_faces and df_boxes is not None:
-            final_img, rf_labels, rf_confs = model.recognize_faces(
-                final_img, df_boxes, match_type="all"
+        if recognize_faces:
+            final_img, _, _ = model.recognize_faces(
+                final_img, faces, boxes, match_type="all"
             )
 
     return final_img
@@ -125,9 +125,16 @@ def detect_video(
     ret, frame = reader.read()
 
     curr_frame = 0
+    if n_frames is not None:
+        total_frames = n_frames
+    else:
+        total_frames = reader.get(cv2.CAP_PROP_FRAME_COUNT)
+
     while ret:
-        if n_frames is not None and curr_frame > n_frames:
+        if curr_frame > total_frames:
             break
+
+        print(f"Processing {curr_frame}/{total_frames}", end="\r")
 
         img = detect_image(
             model,

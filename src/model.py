@@ -21,7 +21,7 @@ class Model:
         self.load_face_embeddings()
 
     def load_mtcnn(self):
-        self.mtcnn = MTCNN()
+        self.mtcnn = MTCNN(image_size=100, keep_all=True, min_face_size=40)
 
     def load_resnet(self):
         self.resnet = InceptionResnetV1(pretrained="vggface2").eval()
@@ -49,25 +49,25 @@ class Model:
         save_directory="../saved_faces",
         save_image=True,
     ):
-        face, box, _, _ = self.detect_faces(img)
+        faces = self.mtcnn(img)
 
-        if box is None or len(box) == 0:
+        if faces is None:
             print("No face was detected.")
             return
-        elif len(box) > 1:
+
+        if len(faces) > 1:
             print("Won't save face because multiple faces were detected.")
-            return
 
-        face = extract_face(img, box[0], 160)
+        boxes, _ = self.mtcnn.detect(img)
 
-        embedding = self.to_embedding(face)
+        embedding = self.to_embedding(faces[0])
         self.saved_faces.append((name, embedding))
 
         np.save(f"{save_directory}/embeddings/{name}", embedding)
 
         cv2.imwrite(
             f"{save_directory}/images/{name}.png",
-            self.extract_image(img, [int(coordinate) for coordinate in box[0]]),
+            self.extract_image(img, [int(coordinate) for coordinate in boxes[0]]),
         )
 
     def detect_objects(
@@ -105,56 +105,38 @@ class Model:
     def detect_faces(
         self,
         img: np.ndarray,
+        detection_threshold=0.7,
         draw_confidence: bool = False,
         draw_landmark: bool = False,
         draw_offset: tuple[int, int, int, int] = (0, 0, 0, 0),
-    ) -> tuple[
-        np.ndarray, np.ndarray[np.ndarray], np.ndarray[float], np.ndarray[np.ndarray]
-    ]:
-        """Detects all faces in a given image.
-
-        Args:
-            img (np.ndarray): Image in which faces will be detected.
-            draw_confidence (bool, optional): Draw the confidence score above the detected face bounding box. Defaults to False.
-            draw_landmark (bool, optional): _description_. Defaults to False.
-            draw_offset (tuple[int, int, int, int], optional): Offset applied when drawing all elements. Defaults to (0, 0, 0, 0).
-
-        Returns:
-            tuple[np.ndarray, np.ndarray[np.ndarray], np.ndarray[float], np.ndarray[np.ndarray]]: A tuple containing the image generated after face detection, the bounding boxes, confidence scores, and landmarks of each face detected.
-        """
+    ) -> tuple[np.ndarray, np.ndarray[Tensor], np.ndarray, np.ndarray[float]]:
         conf_height_offset = -5
 
-        boxes, confs, landmarks = self.mtcnn.detect(
-            img,
-            landmarks=True,
-        )
-
-        if boxes is None:
-            return img, None, None, None
-
+        faces, confs = self.mtcnn(img, return_prob=True)
         final_img = img.copy()
+        boxes = []
 
-        # Draw bounding boxes, confidence scores and landmarks
-        for box, conf, landmark in list(zip(boxes, confs, landmarks)):
-            box = [int(box[i] + draw_offset[i]) for i in range(len(box))]
+        if faces is not None:
+            boxes, _ = self.mtcnn.detect(img)
+            boxes = list(map(lambda box: [int(c) for c in box], boxes))
 
-            self.draw_box(final_img, box)
+            for i, conf in enumerate(confs):
+                box = boxes[i]
 
-            if draw_confidence:
-                self.draw_label(
-                    final_img, f"{conf:.3f}", (box[0], box[1] + conf_height_offset)
-                )
+                self.draw_box(final_img, box)
 
-            # TODO
-            if draw_landmark:
-                break
+                if draw_confidence:
+                    self.draw_label(
+                        final_img, f"{conf:.3f}", (box[0], box[1] + conf_height_offset)
+                    )
 
-        return final_img, boxes, confs, landmarks
+        return final_img, faces, boxes, confs
 
     def recognize_faces(
         self,
         img: np.ndarray,
-        face_bounding_boxes: np.ndarray[np.ndarray],
+        faces: Tensor,
+        boxes: np.ndarray,
         match_type: str = "best",
         match_threshold: float = 0.7,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -173,34 +155,41 @@ class Model:
             tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple containing the image after recognition, recognized names, and confidence scores.
         """
 
-        names = []
-        confs = []
+        if faces is None:
+            return img, [], []
+
         final_image = img.copy()
 
-        for face_bounding_box in face_bounding_boxes:
-            face_bounding_box = list(map(int, face_bounding_box))
+        names = []
+        confs = []
 
-            extracted_face = extract_face(img, face_bounding_box, 160)
+        for i, face in enumerate(faces):
             matches = self.face_recognition(
-                extracted_face, match_type=match_type, match_threshold=match_threshold
+                face, match_type=match_type, match_threshold=match_threshold
             )
 
-            for i in range(len(matches)):
+            box = boxes[i]
 
+            for i in range(len(matches)):
                 names.append(matches[i][0])
                 confs.append(matches[i][1])
 
+                label = matches[i][0]
+
+                if matches[i][1] is not None:
+                    label += f" {matches[i][1]:.3f}"
+
                 self.draw_label(
                     final_image,
-                    f"{matches[i][0]} {matches[i][1]:.3f}",
-                    (face_bounding_box[0], face_bounding_box[1] - 10 - (i * 20)),
+                    label,
+                    (box[0], box[1] - 10 - (i * 20)),
                 )
 
         return final_image, names, confs
 
     def face_recognition(
         self,
-        face: np.ndarray | Tensor,
+        face_tensor: Tensor,
         match_type: str = "best",
         match_threshold: float = 0.7,
     ) -> np.ndarray[tuple[str, float]]:
@@ -218,17 +207,12 @@ class Model:
             np.ndarray[tuple[str, float]]: Returns an array of (name, distance) for all matches. Returns ("Unknown", 0) if no match was found or ("NoFace", 0) if the face provided is None.
         """
 
-        if face is None:
+        if face_tensor is None:
             return [("NoFace", None)]
 
         matches = []
 
-        if type(face) == Tensor:
-            x1_tensor = face
-        else:
-            x1_tensor = self.img_to_tensor(face)
-
-        x1_embedding = self.to_embedding(x1_tensor)
+        x1_embedding = self.to_embedding(face_tensor)
 
         for x2_name, x2_embedding in self.saved_faces:
             distance = np.linalg.norm(x1_embedding - x2_embedding)
@@ -308,7 +292,7 @@ class Model:
         extracted_image = img[box[1] : box[3], box[0] : box[2]]
         return extracted_image
 
-    def to_embedding(self, img_tensor: Tensor) -> np.ndarray:
-        embedding = self.resnet(img_tensor.unsqueeze(0)).detach().numpy()
+    def to_embedding(self, tensor: Tensor) -> np.ndarray:
+        embedding = self.resnet(tensor.unsqueeze(0)).detach().numpy()
 
         return embedding

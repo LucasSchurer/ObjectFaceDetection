@@ -79,7 +79,7 @@ class Model:
     ):
         result = self.yolo.predict(img)[0]
 
-        final_img = img
+        final_img = img.copy()
         size = len(result.boxes)
 
         for i in range(size):
@@ -132,7 +132,7 @@ class Model:
         if boxes is None:
             return img, None, None, None
 
-        final_img = img
+        final_img = img.copy()
 
         # Draw bounding boxes, confidence scores and landmarks
         for box, conf, landmark in list(zip(boxes, confs, landmarks)):
@@ -175,7 +175,7 @@ class Model:
 
         names = []
         confs = []
-        final_image = img
+        final_image = img.copy()
 
         for face_bounding_box in face_bounding_boxes:
             face_bounding_box = list(map(int, face_bounding_box))

@@ -124,14 +124,12 @@ def detect_video(
 
     ret, frame = reader.read()
 
-    elapsed_time_total = 0
-
     curr_frame = 0
     while ret:
         if n_frames is not None and curr_frame > n_frames:
             break
 
-        img, elapsed_time = detect_image(
+        img = detect_image(
             model,
             frame,
             detect_objects=detect_objects,
@@ -139,26 +137,9 @@ def detect_video(
             recognize_faces=recognize_faces,
         )
 
-        elapsed_time_total += elapsed_time
         writer.write(img)
         ret, frame = reader.read()
         curr_frame += 1
-
-
-def predict_image(
-    model: Model, img_path: str, output_path: str, detect_faces: bool = True
-):
-    img = cv2.imread(img_path)
-
-    if detect_faces:
-        result = model.detect_all(img)
-    else:
-        result = model.detect_objects1(img).plot()
-
-    if output_path is None:
-        output_path = get_output_path(img_path)
-
-    cv2.imwrite(output_path, result)
 
 
 def get_output_path(filename: str):

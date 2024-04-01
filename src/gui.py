@@ -18,6 +18,26 @@ model = Model()
 model.load("../models/yolov8n.pt")
 
 
+def get_request_image(img_str: str) -> np.ndarray:
+    if img_str is None:
+        return None
+
+    content = img_str.split(";")
+
+    if len(content) > 1:
+        content = content[1]
+        encoded_data = content.split(",")[1]
+        decoded_image = base64.b64decode(encoded_data)
+
+        nparr = np.frombuffer(decoded_image, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img = cv2.flip(img, 1)
+
+        return img
+    else:
+        return None
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -26,21 +46,14 @@ def index():
 @app.route("/predict_frame", methods=["POST"])
 def predict_frame():
     with lock:
-        frame_data = request.json.get("frame")
-        content = frame_data.split(";")
+        img_str = request.json.get("frame")
 
-        detect_objects = request.json.get("detect_objects", False)
-        detect_faces = request.json.get("detect_faces", False)
-        recognize_faces = request.json.get("recognize_faces", False)
+        img = get_request_image(img_str)
 
-        if len(content) > 1:
-            content = content[1]
-            encoded_data = content.split(",")[1]
-            decoded_image = base64.b64decode(encoded_data)
-
-            nparr = np.frombuffer(decoded_image, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            img = cv2.flip(img, 1)
+        if img is not None:
+            detect_objects = request.json.get("detect_objects", False)
+            detect_faces = request.json.get("detect_faces", False)
+            recognize_faces = request.json.get("recognize_faces", False)
 
             result = detect_image(
                 model,
@@ -60,33 +73,24 @@ def predict_frame():
                     "frame": request.json.get("frame"),
                 }
             )
-
-        return jsonify(
-            {
-                "processed_frame": "https://pm1.aminoapps.com/6475/e3b27c0e80d5323b18550ec43a2b1e8e8731ab4f_hq.jpg",
-                "frame": request.json.get("frame"),
-            }
-        )
+        else:
+            return jsonify(
+                {
+                    "processed_frame": "",
+                    "frame": request.json.get("frame"),
+                }
+            )
 
 
 @app.route("/save_face", methods=["POST"])
 def save_face():
-    face_name = request.json.get("name")
-    face_data = request.json.get("face")
-    content = face_data.split(";")
-    sucess = False
+    face_name = request.json.get("name", None)
+    img_str = request.json.get("face", None)
 
-    if len(content) > 1 and face_name is not None:
-        content = content[1]
-        encoded_data = content.split(",")[1]
-        decoded_image = base64.b64decode(encoded_data)
+    img = get_request_image(img_str)
 
-        nparr = np.frombuffer(decoded_image, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        img = cv2.flip(img, 1)
-
+    if img is not None and face_name is not None:
         model.recognize_save_face(face_name, img)
-
         sucess = True
 
     return jsonify({"success": sucess})

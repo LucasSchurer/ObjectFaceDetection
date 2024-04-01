@@ -52,15 +52,40 @@ def predict_frame():
 
         if img is not None:
             detect_objects = request.json.get("detect_objects", False)
+            object_detection_threshold = float(
+                request.json.get("object_detection_threshold", 0.7)
+            )
+
+            object_draw_classification = request.json.get(
+                "object_draw_classification", True
+            )
+            object_draw_confidence = request.json.get("object_draw_confidence", True)
+
             detect_faces = request.json.get("detect_faces", False)
+            face_detection_threshold = float(
+                request.json.get("face_detection_threshold", 0.7)
+            )
+            face_detection_draw_confidence = request.json.get(
+                "face_detection_draw_confidence", True
+            )
+
             recognize_faces = request.json.get("recognize_faces", False)
+            face_recognition_match_type = request.json.get("recognize_faces", "all")
+            face_recognition_threshold = float(request.json.get("recognize_faces", 0.7))
 
             result = detect_image(
                 model,
                 img,
                 detect_objects=detect_objects,
+                object_detection_threshold=object_detection_threshold,
+                object_draw_classification=object_draw_classification,
+                object_draw_confidence=object_draw_confidence,
                 detect_faces=detect_faces,
+                face_detection_threshold=face_detection_threshold,
+                face_detection_draw_confidence=face_detection_draw_confidence,
                 recognize_faces=recognize_faces,
+                face_recognition_match_type=face_recognition_match_type,
+                face_recognition_threshold=face_recognition_threshold,
             )
 
             _, encoded_image = cv2.imencode(".jpg", result)

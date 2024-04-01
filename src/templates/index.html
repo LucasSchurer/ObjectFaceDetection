@@ -1,62 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Real-Time Object and Face Detection</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Site</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-<div id="container">
-    <table>
-        <tr>
-            <td>Detect Objects</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="detectObjectsCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td>Detect Faces</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="detectFacesCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td>Recognize Faces</td>
-            <td>
-                <div class="switch-container">
-                    <label class="switch">
-                        <input type="checkbox", id="recognizeFacesCheckbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </td>
-        </tr>
-        
-    </table>
-
-    <input type="number" id="fpsInput" placeholder="FPS" min="1" max="60", value="30">
-    <button id="toggleButton" onclick="toggleCapture()">Start Tracking</button>
-    <input type="string" id="nameInput" placeholder="NAME">
-    <button id="saveFace" onclick="saveFace()">Save Face</button>
-
-    <div>
-        <video autoplay="true" id="videoElement"></video>
-        <img id="uploadedImage" src="">
-    </div>
-</div>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <header>
+        <h1>Site Title</h1>
+    </header>
+    <main>
+        <div class="sticky-div">
+            <div id="video-container">
+                <video id="video-feed" autoplay></video>
+                <img id="captured-image">
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <h2>Object Detection</h2>
+                <table>
+                    <tr>
+                        <td>Active</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch", id="detect-objects">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Detection Threshold</td>
+                        <td>
+                            <div class="slider-container">
+                                <input type="range" min="0" max="1" step="0.01" value="0.7" class="slider", id="object-detection-threshold">
+                                <span class="slider-value">0.7</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <tr>
+                            <td>Draw Classification</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" class="toggle-switch", id="object-draw-classification">
+                                    <span class="slider round"></span>
+                                </label>
+                            </td>
+                        </tr>
+                    </tr>
+                    <tr>
+                        <td>Draw Confidence</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch", id="object-draw-confidence">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="column">
+                <h2>Face Detection</h2>
+                <table>
+                    <tr>
+                        <td>Active</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch", id="detect-faces">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Detection Threshold</td>
+                        <td>
+                            <div class="slider-container">
+                                <input type="range" min="0" max="1" step="0.01" value="0.7" class="slider", id="face-detection-threshold">
+                                <span class="slider-value">0.7</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Draw Confidence</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch", id="face-detection-draw-confidence">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="column">
+                <h2>Face Recognition</h2>
+                <table>
+                    <tr>
+                        <td>Active</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch", id="recognize-faces">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Match Threshold</td>
+                        <td>
+                            <div class="slider-container">
+                                <input type="range" min="0" max="1" step="0.01" value="0.7" class="slider", id="face-recognition-threshold">
+                                <span class="slider-value">0.7</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Match Type</td>
+                        <td>
+                            <select class="match-type-dropdown", id="face-recognition-match-type">
+                                <option value="all">All</option>
+                                <option value="best">Best</option>
+                                <option value="first">First</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

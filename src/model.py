@@ -5,6 +5,7 @@ import os
 import cv2
 import numpy as np
 from torch import Tensor
+from torch.cuda import set_device
 
 
 class Model:
@@ -13,6 +14,7 @@ class Model:
         self.mtcnn = None
         self.resnet = None
         self.saved_faces = []
+        set_device(0)
 
     def load(self, yolo_model="yolov8n.pt"):
         self.load_yolo(model=yolo_model)
@@ -73,9 +75,9 @@ class Model:
     def detect_objects(
         self,
         img: np.ndarray,
-        confidence_threshold: float = 0.7,
-        plot_classification: bool = True,
-        plot_confidence: bool = True,
+        threshold: float = 0.7,
+        draw_classification: bool = True,
+        draw_confidence: bool = True,
     ):
         result = self.yolo.predict(img)[0]
 
@@ -88,13 +90,13 @@ class Model:
             cls_index = int(result.boxes.cls[i])
             cls_name = result.names[cls_index]
 
-            if conf < confidence_threshold:
+            if conf < threshold:
                 continue
 
-            if plot_classification:
+            if draw_classification:
                 self.draw_label(final_img, cls_name, (box[0], box[1] - 5))
 
-            if plot_confidence:
+            if draw_confidence:
                 self.draw_label(final_img, f"{conf:.3f}", (box[0], box[1] - 30))
 
             # Draw the bounding box
@@ -105,10 +107,8 @@ class Model:
     def detect_faces(
         self,
         img: np.ndarray,
-        detection_threshold=0.7,
+        threshold=0.7,
         draw_confidence: bool = False,
-        draw_landmark: bool = False,
-        draw_offset: tuple[int, int, int, int] = (0, 0, 0, 0),
     ) -> tuple[np.ndarray, np.ndarray[Tensor], np.ndarray, np.ndarray[float]]:
         conf_height_offset = -5
 

@@ -84,23 +84,43 @@ def detect_image(
     model: Model,
     img: np.ndarray,
     detect_objects: bool = True,
+    object_detection_threshold: float = 0.7,
+    object_draw_classification: bool = True,
+    object_draw_confidence: bool = True,
     detect_faces: bool = True,
+    face_detection_threshold: float = 0.7,
+    face_detection_draw_confidence: bool = True,
     recognize_faces: bool = True,
+    face_recognition_match_type: str = "all",
+    face_recognition_threshold: float = 0.7,
 ) -> np.ndarray:
     final_img = img
 
     if detect_objects:
-        final_img = model.detect_objects(final_img)
+        final_img = model.detect_objects(
+            final_img,
+            threshold=object_detection_threshold,
+            draw_classification=object_draw_classification,
+            draw_confidence=object_draw_confidence,
+        )
 
     if detect_faces or recognize_faces:
-        df_img, faces, boxes, _ = model.detect_faces(final_img, draw_confidence=True)
+        df_img, faces, boxes, _ = model.detect_faces(
+            final_img,
+            threshold=face_detection_threshold,
+            draw_confidence=face_detection_draw_confidence,
+        )
 
         if detect_faces:
             final_img = df_img
 
         if recognize_faces:
             final_img, _, _ = model.recognize_faces(
-                final_img, faces, boxes, match_type="all"
+                final_img,
+                faces,
+                boxes,
+                match_type=face_recognition_match_type,
+                match_threshold=face_recognition_threshold,
             )
 
     return final_img

@@ -1,102 +1,95 @@
-var video = document.querySelector("#videoElement");
-var uploadedImage = document.querySelector("#uploadedImage");
-var canvas = document.createElement('canvas');
-var context = canvas.getContext('2d');
-var intervalId;
-var capturing = false;
-var lastRequest = null;
+document.addEventListener('DOMContentLoaded', function() {
+    var sliders = document.querySelectorAll('.slider');
+    
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
 
-var detect_objects = document.getElementById('detect_objects')
-var detectFacesCheckbox = document.getElementById('detectFacesCheckbox')
-var recognizeFacesCheckbox = document.getElementById('recognizeFacesCheckbox')
+    var lastRequest = null;
 
-if (navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function(stream) {
-            video.srcObject = stream;
-        })
-        .catch(function(error) {
-            console.log("Something went wrong!", error);
+    var detectObjects = document.getElementById('detect-objects')
+    var objectDetectionThreshold = document.getElementById('object-detection-threshold')
+    var objectDrawClassification = document.getElementById('object-draw-classification')
+    var objectDrawConfidence = document.getElementById('object-draw-confidence')
+
+    var detectFaces = document.getElementById('detect-faces')
+    var faceDetectionThreshold = document.getElementById('face-detection-threshold')
+    var faceDetectionDrawConfidence = document.getElementById('face-detection-draw-confidence')
+
+    var recognizeFaces = document.getElementById('recognize-faces')
+    var faceRecognitionMatchType = document.getElementById('face-recognition-match-type')
+    var faceRecognitionThreshold = document.getElementById('face-recognition-threshold')
+
+    animate()
+
+    sliders.forEach(function(slider) {
+        slider.addEventListener('input', function() {
+            var sliderValue = this.parentElement.querySelector('.slider-value');
+            sliderValue.textContent = this.value;
         });
-}
+    });
 
-function toggleCapture() {
-    capturing = !capturing;
-    var button = document.getElementById("toggleButton");
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function (stream) {        
+        var videoFeed = document.getElementById('video-feed');
+        videoFeed.srcObject = stream;
+        videoFeed.play();
+    })
+    .catch(function (error) {
+        console.error('Cant connect to the camera: ', error);
+        // document.getElementById('video-feed').style.display = 'none';
+        // document.getElementById('default-image').style.display = 'block';
+    });
 
-    if (capturing) {
-        button.textContent = "Parar Captura";
-        startCapturing();
-    } else {
-        button.textContent = "Iniciar Captura";
-        stopCapturing();
-    }
-}
-
-function saveFace() {
-    var nameInput = document.getElementById('nameInput').value
-
-    if (nameInput == '')
-    {
-        return
+    function animate() {
+        captureFrame()
+        requestAnimationFrame(animate)
     }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    var imageDataURL = canvas.toDataURL('image/jpeg');
+    function captureFrame() {
+        if (lastRequest !== null && lastRequest.readyState !== XMLHttpRequest.DONE) {
+            return;
+        }        
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/save_face', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+        var videoFeed = document.getElementById('video-feed');
+        var capturedImage = document.getElementById('captured-image');
+        
+        canvas.width = videoFeed.videoWidth;
+        canvas.height = videoFeed.videoHeight;
+        context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+        var dataURL = canvas.toDataURL('image/png');
 
-    xhr.send(JSON.stringify({ face: imageDataURL, name: nameInput }));
-}
-
-function startCapturing() {
-    var fpsInput = document.getElementById("fpsInput").value;
-    var intervalTime = 1000 / fpsInput;
-
-    clearInterval(intervalId);
-
-    intervalId = setInterval(function() {
-        captureFrame();
-    }, intervalTime);
-}
-
-function stopCapturing() {
-    clearInterval(intervalId);
-}
-
-function captureFrame() {
-    if (!capturing) return; 
-
-    if (lastRequest !== null && lastRequest.readyState !== XMLHttpRequest.DONE) {
-        return;
-    }
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    var imageDataURL = canvas.toDataURL('image/jpeg');
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/predict_frame', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-            var response = JSON.parse(xhr.responseText);
-            uploadedImage.src = response.processed_frame;
-            lastRequest = null;
+        if (!detectFaces.checked && !detectObjects.checked & !recognizeFaces.checked) {
+            capturedImage.src = dataURL;
+            return;
         }
-    };
 
-    xhr.send(JSON.stringify({ 
-        frame: imageDataURL,
-        detect_faces: detectFacesCheckbox.checked,
-        detect_objects: detectObjectsCheckbox.checked,
-        recognize_faces: recognizeFacesCheckbox.checked
-    }));
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/predict_frame', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                capturedImage.src = response.processed_frame;
+                lastRequest = null;
+            }
+        };
 
-    lastRequest = xhr;
-}
+        xhr.send(JSON.stringify({ 
+            frame: dataURL,
+            detect_objects: detectObjects.checked,
+            object_detection_threshold: objectDetectionThreshold.value,
+            object_draw_classification: objectDrawClassification.checked,
+            object_draw_confidence: objectDrawConfidence.checked,
+
+            detect_faces: detectFaces.checked,
+            face_detection_threshold: faceDetectionThreshold.value,
+            face_detection_draw_confidence: faceDetectionDrawConfidence.checked,
+            
+            recognize_faces: recognizeFaces.checked,
+            face_recognition_match_type: faceRecognitionMatchType.value,
+            face_recognition_threshold: faceRecognitionThreshold.value
+        }));
+
+        lastRequest = xhr;
+    }
+});

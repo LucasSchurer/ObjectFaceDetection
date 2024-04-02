@@ -1,7 +1,8 @@
-### Description
+# Description
 
 The project aims to detect objects and faces and recognize faces. It uses the [YOLOv8](https://github.com/ultralytics/ultralytics) model for object detection and the [facenet_pytorch](https://github.com/timesler/facenet-pytorch) package for face detection and recognition. The project can be used via command line and through a web interface.
-### Project Structure
+
+# Project Structure
 
 ```
 .
@@ -26,7 +27,7 @@ The project aims to detect objects and faces and recognize faces. It uses the [Y
 ├── README.md		
 └── requirements.txt
 ```
-### Installation
+# Installation
 
 1. **Clone the repo**
 	```sh
@@ -41,8 +42,8 @@ The project aims to detect objects and faces and recognize faces. It uses the [Y
 	 * **PREDICTION_OUTPUT_DIR**: Directory to save prediction output files.
 	 * **SAVE_FACES_EMBEDDING_DIR**: Directory to save known face embeddings.
 	 * **SAVE_FACES_IMAGES_DIR**: Directory to save known faces images.
-### Usage
-#### Prediction
+
+# Usage
 
 ```
 python predict.py [input]
@@ -71,71 +72,61 @@ Optional arguments:
 | -rft      | 0.7                                                                              | threshold used to determine whether a face matches another face. Higher values will produce more matches, but they may be less accurate. Lower values will result in fewer matches, but they will be more accurate |
 | -rftm     | best                                                                             | - all: All matches are returned<br>- best: Only the face with the lowest distance (higher accuracy) will be returned<br>- first: First known face which matches the face      will be returned                     
 
-##### Examples
-###### Object Detection
-1. 
+## Examples
+### Object Detection
 ```
 python predict.py ../test_data/street.jpg -o ../saved/object_detection/street.jpg -do -dot 0.4
 ```
 ![street](saved/object_detection/street.jpg)
-2. 
 ```
 python predict.py ../test_data/street.jpg -o ../saved/object_detection/street_cls.jpg -do -dot 0.4 -docls
 ```
-![street_cls](../saved/object_detection/street_cls.jpg)
-3. 
+![street_cls](saved/object_detection/street_cls.jpg)
 ```
 python predict.py ../test_data/street.jpg -o ../saved/object_detection/street_conf.jpg -do -dot 0.4 -doconf
 ```
-![street_conf](../saved/object_detection/street_conf.jpg)
-4. 
+![street_conf](saved/object_detection/street_conf.jpg)
 ```
 python predict.py ../test_data/street.jpg -o ../saved/object_detection/street_all.jpg -do -dot 0.4 -docls -doconf
 ```
-![street_all](../saved/object_detection/street_all.jpg)
-5. 
+![street_all](saved/object_detection/street_all.jpg)
 ```
 python predict.py ../test_data/street_video.mp4 -o ../saved/object_detection/street_video.mp4 -nf 1000 -do -docls -dot 0.6
 ```
-![street_video](../saved/object_detection/street_video.gif)
+![street_video](saved/object_detection/street_video.gif)
 
 *The video wasn't uploaded to the repository because of its size*.
-###### Face Detection
-1. 
+### Face Detection
 ```
 python predict.py ../test_data/people.jpg -o ../saved/face_detection/people.jpg -df
 ```
-![people](../saved/face_detection/people.jpg)
-2. 
+![people](saved/face_detection/people.jpg)
 ```
 python predict.py ../test_data/people.jpg -o ../saved/face_detection/people.jpg -df -dfconf
 ```
-![people](../saved/face_detection/people_conf.jpg)
-3. 
+![people_conf](saved/face_detection/people_conf.jpg)
 ```
 python predict.py ../test_data/people.jpg -o ../saved/face_detection/people.jpg -df -dfconf -dft 0.9
 ```
-![people](../saved/face_detection/people_t9.jpg)
-###### Face Recognition
-1. 
+![people](saved/face_detection/people_t9.jpg)
+
+### Face Recognition
 ```
 python predict.py ../test_data/steve_jobs_bill_gates.jpg -o ../saved/face_recognition/steve_jobs_bill_gates.jpg -rf -rf 1.2 -rfmt all
 ```
-![steve_jobs_bill_gates](../saved/face_recognition/steve_jobs_bill_gates.png)
-2. 
+![steve_jobs_bill_gates](saved/face_recognition/steve_jobs_bill_gates.png)
 ```
 python predict.py ../test_data/steve_jobs_bill_gates.jpg -o ../saved/face_recognition/steve_jobs_bill_gates_hight.jpg -rf -rf 5 -rfmt all
 ```
-![steve_jobs_bill_gates_hight](../saved/face_recognition/steve_jobs_bill_gates_hight.png)
+![steve_jobs_bill_gates_hight](saved/face_recognition/steve_jobs_bill_gates_hight.png)
 
-
-###### Object and Face Detection
-1. 
+### Object and Face Detection
 ```
 python predict.py ../test_data/street_people.png -o ../saved/street_people.png -do -docls -dot 0.3 -df -dfconf -dft 0.8
 ```
-![street_people](../saved/street_people.png)
-#### Save Faces
+![street_people](saved/street_people.png)
+
+## Save Faces
 
 ```
 python save_faces.py [name] [input]
@@ -146,7 +137,7 @@ Required arguments:
 * **name**: name of the face. Full names can be separated by underscore (\_) and without capitalization. When drawing the known face, every word will be capitalized.
 * **input**: path to image (png, jpg) or video that will be processed.
 
-#### Web Interface
+# Web Interface
 
 ```
 python gui.py
@@ -154,4 +145,4 @@ python gui.py
 
 The web interface will run on `localhost:5000` and can be used to real time object and face detection, as well as face recognition. If the application can't access the webcam (either because there isn't one connected or because of permissions), a black image will be displayed and none of the functionalities will work.
 
-![[web_interface.png]]
+![web_interface](web_interface.png)

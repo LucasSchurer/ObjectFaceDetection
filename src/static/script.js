@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var faceRecognitionMatchType = document.getElementById('face-recognition-match-type')
     var faceRecognitionThreshold = document.getElementById('face-recognition-threshold')
 
+    var capturing = false
+
     animate()
 
     sliders.forEach(function(slider) {
@@ -50,9 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var videoFeed = document.getElementById('video-feed');
         videoFeed.srcObject = stream;
         videoFeed.play();
+        capturing = true
     })
     .catch(function (error) {
         console.error('Cant connect to the camera: ', error);
+        capturedImage.src = webcamErrorImagePath;
     });
 
     function animate() {
@@ -100,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function captureFrame() {
+        if (!capturing) {
+            return;
+        }
+
         if (lastRequest !== null && lastRequest.readyState !== XMLHttpRequest.DONE) {
             return;
         }        

@@ -14,7 +14,6 @@ class Model:
         self.mtcnn = None
         self.resnet = None
         self.saved_faces = []
-        set_device(0)
 
     def load(self, yolo_model="yolov8n.pt"):
         self.load_yolo(model=yolo_model)
@@ -23,7 +22,7 @@ class Model:
         self.load_face_embeddings()
 
     def load_mtcnn(self):
-        self.mtcnn = MTCNN(image_size=100, keep_all=True, min_face_size=40)
+        self.mtcnn = MTCNN(thresholds=[0.3, 0.4, 0.5], keep_all=True)
 
     def load_resnet(self):
         self.resnet = InceptionResnetV1(pretrained="vggface2").eval()
@@ -31,26 +30,20 @@ class Model:
     def load_yolo(self, model="yolov8n.pt"):
         self.yolo = YOLO(model)
 
-    def load_face_embeddings(
-        self, saved_faces_embeddings_dir="../saved_faces/embeddings"
-    ):
-        files = os.listdir(saved_faces_embeddings_dir)
+    def load_face_embeddings(self):
+        embeddings_dir = os.environ.get("SAVE_FACES_EMBEDDING_DIR")
+
+        files = os.listdir(embeddings_dir)
 
         for file in files:
             name = [str.title(s) for s in file.split(".")[0].split("_")]
 
             name = " ".join(name)
 
-            embedding = np.load(f"{saved_faces_embeddings_dir}/{file}")
+            embedding = np.load(f"{embeddings_dir}/{file}")
             self.saved_faces.append((name, embedding))
 
-    def recognize_save_face(
-        self,
-        name: str,
-        img: np.ndarray,
-        save_directory="../saved_faces",
-        save_image=True,
-    ) -> bool:
+    def recognize_save_face(self, name: str, img: np.ndarray) -> bool:
         faces = self.mtcnn(img)
 
         if faces is None:
@@ -66,10 +59,10 @@ class Model:
         embedding = self.to_embedding(faces[0])
         self.saved_faces.append((name, embedding))
 
-        np.save(f"{save_directory}/embeddings/{name}", embedding)
+        np.save(f"{os.environ.get('SAVE_FACES_EMBEDDING_DIR')}/{name}", embedding)
 
         cv2.imwrite(
-            f"{save_directory}/images/{name}.png",
+            f"{os.environ.get('SAVE_FACES_IMAGES_DIR')}/{name}.png",
             self.extract_image(img, [int(coordinate) for coordinate in boxes[0]]),
         )
 
@@ -80,7 +73,7 @@ class Model:
         draw_classification: bool = True,
         draw_confidence: bool = True,
     ):
-        result = self.yolo.predict(img)[0]
+        result = self.yolo.predict(img, conf=threshold)[0]
 
         final_img = img.copy()
         size = len(result.boxes)
@@ -90,9 +83,6 @@ class Model:
             conf = result.boxes.conf[i].item()
             cls_index = int(result.boxes.cls[i])
             cls_name = result.names[cls_index]
-
-            if conf < threshold:
-                continue
 
             if draw_classification:
                 self.draw_label(final_img, cls_name, (box[0], box[1] - 5))
@@ -108,7 +98,7 @@ class Model:
     def detect_faces(
         self,
         img: np.ndarray,
-        threshold=0.7,
+        threshold: float = 0.7,
         draw_confidence: bool = False,
     ) -> tuple[np.ndarray, np.ndarray[Tensor], np.ndarray, np.ndarray[float]]:
         conf_height_offset = -5
@@ -122,6 +112,9 @@ class Model:
             boxes = list(map(lambda box: [int(c) for c in box], boxes))
 
             for i, conf in enumerate(confs):
+                if conf < threshold:
+                    continue
+
                 box = boxes[i]
 
                 self.draw_box(final_img, box)
@@ -141,21 +134,6 @@ class Model:
         match_type: str = "best",
         match_threshold: float = 0.7,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Recognizes faces contained in a given image using the bounding boxes provided.
-
-        Args:
-            img (np.ndarray): Image in which faces will be recognized.
-            face_bounding_boxes (np.ndarray[np.ndarray]): Bounding boxes of the faces to be recognized.
-            match_type (str, optional): Type of recognition match.
-                first: Stop and return the first match found. It's dependent on the order in which the saved faces are loaded.
-                best: Among all matches, return the one with the smallest distance.
-                all: Return all matches.
-            match_threshold (float, optional): Minimum distance required to consider a match between two faces. Defaults to 0.7.
-
-        Returns:
-            tuple[np.ndarray, np.ndarray, np.ndarray]: A tuple containing the image after recognition, recognized names, and confidence scores.
-        """
-
         if faces is None:
             return img, [], []
 
@@ -194,20 +172,6 @@ class Model:
         match_type: str = "best",
         match_threshold: float = 0.7,
     ) -> np.ndarray[tuple[str, float]]:
-        """Try to find a saved face that matches the passed face.
-
-        Args:
-            face (np.ndarray | Tensor): Face used to find a match.
-            match_type (str, optional): Type of recognition match.
-                first: Stop and return the first match found. It's dependent on the order in which the saved faces are loaded.
-                best: Among all matches, return the one with the smallest distance.
-                all: Return all matches.
-            match_threshold (float, optional): Minimum distance required to consider a match between two faces. Defaults to 0.7.
-
-        Returns:
-            np.ndarray[tuple[str, float]]: Returns an array of (name, distance) for all matches. Returns ("Unknown", 0) if no match was found or ("NoFace", 0) if the face provided is None.
-        """
-
         if face_tensor is None:
             return [("NoFace", None)]
 

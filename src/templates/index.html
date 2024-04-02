@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Site</title>
+    <title>Object and Face Detection</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Site Title</h1>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">Object and Face Detection</h1>
+        </div>
     </header>
     <main>
         <div class="sticky-div">
@@ -124,10 +126,26 @@
                             </select>
                         </td>
                     </tr>
+                    <tr>
+                        <td>
+                            <button id="save-face-button" disabled>Save Face</button>
+                        </td>
+                        <td>
+                            <input type="text" id="save-face-input" class="save-face-input-field" placeholder="Name" required>
+                        </td>
+                    </tr>
                 </table>
             </div>
         </div>
     </main>
+
+    <div class="popup" id="popup">
+        <span class="popup-message" id="popup-message"></span>
+    </div>
+
+    <script>
+        var webcamErrorImagePath = "{{ url_for('static', filename='webcamError.png') }}";
+    </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

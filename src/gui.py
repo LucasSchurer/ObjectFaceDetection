@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from flask import Blueprint
 from predict import detect_image
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 static_bp = Blueprint(
@@ -14,6 +15,7 @@ static_bp = Blueprint(
 app.register_blueprint(static_bp)
 lock = Lock()
 
+load_dotenv()
 model = Model()
 model.load("../models/yolov8n.pt")
 
@@ -77,8 +79,8 @@ def predict_frame():
                 img,
                 detect_objects=detect_objects,
                 object_detection_threshold=object_detection_threshold,
-                object_draw_classification=object_draw_classification,
-                object_draw_confidence=object_draw_confidence,
+                object_detection_draw_classification=object_draw_classification,
+                object_detection_draw_confidence=object_draw_confidence,
                 detect_faces=detect_faces,
                 face_detection_threshold=face_detection_threshold,
                 face_detection_draw_confidence=face_detection_draw_confidence,

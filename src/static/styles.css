@@ -8,12 +8,15 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-family: 'Arial', cursive;
 }
 
-header {
-  background-color: #333;
-  color: #fff;
-  text-align: center;
+input[type="text"], input[type="password"], textarea, select {
+  font-family: 'Arial', cursive;
+}
+
+button, input[type="button"], input[type="submit"], input[type="reset"] {
+  font-family: 'Arial', cursive;
 }
 
 main {
@@ -24,6 +27,71 @@ main {
   position: sticky;
   top: 0;
   z-index: 999;
+}
+
+.popup {
+  position: fixed;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+  transition: bottom 0.5s ease-in-out;
+}
+
+.popup.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.popup.failure {
+  background-color: #ffcccc;
+  color: #000;
+}
+
+.popup.active {
+  bottom: 20px;
+}
+
+.popup-message {
+  font-size: 16px;
+}
+
+#save-face-input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-width: 100px;
+}
+
+#save-face-input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+}
+
+#save-face-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#save-face-button:hover {
+  background-color: #ccc;
+}
+
+#save-face-button:disabled {
+  background-color: #ddd;
+  color: #999;
+  cursor: not-allowed;
 }
 
 #video-container {
@@ -73,7 +141,6 @@ main {
 
 h1, h2 {
   margin: 0;
-  font-family: Arial, sans-serif;
 }
 
 ul {
@@ -162,4 +229,20 @@ table td {
   outline: none;
   border-color: #2196F3;
   box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+}
+
+.site-header {
+  background-color: #333;
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.site-title {
+  font-size: 24px;
 }

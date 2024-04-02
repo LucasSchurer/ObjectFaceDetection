@@ -31,7 +31,6 @@ def get_request_image(img_str: str) -> np.ndarray:
 
         nparr = np.frombuffer(decoded_image, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        img = cv2.flip(img, 1)
 
         return img
     else:
@@ -109,16 +108,16 @@ def predict_frame():
 
 @app.route("/save_face", methods=["POST"])
 def save_face():
+    success = False
     face_name = request.json.get("name", None)
     img_str = request.json.get("face", None)
 
     img = get_request_image(img_str)
 
     if img is not None and face_name is not None:
-        model.recognize_save_face(face_name, img)
-        sucess = True
+        success = model.recognize_save_face(face_name, img)
 
-    return jsonify({"success": sucess})
+    return jsonify({"success": success})
 
 
 if __name__ == "__main__":

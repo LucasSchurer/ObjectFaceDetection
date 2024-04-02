@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     var sliders = document.querySelectorAll('.slider');
+    var saveFaceInput = document.getElementById('save-face-input');
+    var saveFaceButton = document.getElementById('save-face-button');
+    var popup = document.getElementById('popup');
+    var videoFeed = document.getElementById('video-feed');
+    var capturedImage = document.getElementById('captured-image');
     
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -27,6 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
             sliderValue.textContent = this.value;
         });
     });
+        
+    saveFaceInput.addEventListener('input', function() {
+        if (saveFaceInput.value.trim() !== '') {
+            saveFaceButton.disabled = false;
+        } else {
+            saveFaceButton.disabled = true;
+        }
+    });
+    
+    saveFaceButton.addEventListener('click', function() {
+        saveFace()
+    });
 
     navigator.mediaDevices.getUserMedia({ video: true })
     .then(function (stream) {        
@@ -36,8 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(function (error) {
         console.error('Cant connect to the camera: ', error);
-        // document.getElementById('video-feed').style.display = 'none';
-        // document.getElementById('default-image').style.display = 'block';
     });
 
     function animate() {
@@ -45,17 +60,55 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(animate)
     }
 
+    function showSaveFacePopup(success) {
+        popup.className = 'popup ' + (success ? 'success' : 'failure');
+        popup.textContent = success ? "Successfully saved face" : "Failed to save face"
+
+        popup.classList.add('active');
+        setTimeout(function() {
+            popup.classList.remove('active');
+        }, 3000);
+    }
+
+    function saveFace() {
+        if (saveFaceInput.value == '')
+        {
+            showSaveFacePopup(false)    
+            return
+        }
+
+        canvas.width = videoFeed.videoWidth;
+        canvas.height = videoFeed.videoHeight;
+        context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+        var dataURL = canvas.toDataURL('image/png');
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/save_face', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                var response = xhr.responseText
+                showSaveFacePopup(response.success)
+            } else
+            {
+                showSaveFacePopup(false)
+            }
+        };
+
+        xhr.send(JSON.stringify({ face: dataURL, name: saveFaceInput.value }));
+    }
+
     function captureFrame() {
         if (lastRequest !== null && lastRequest.readyState !== XMLHttpRequest.DONE) {
             return;
         }        
-
-        var videoFeed = document.getElementById('video-feed');
-        var capturedImage = document.getElementById('captured-image');
         
         canvas.width = videoFeed.videoWidth;
         canvas.height = videoFeed.videoHeight;
-        context.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+        context.scale(-1, 1);
+        context.drawImage(videoFeed, 0, 0, -canvas.width, canvas.height);
+        context.scale(1, 1);
         var dataURL = canvas.toDataURL('image/png');
 
         if (!detectFaces.checked && !detectObjects.checked & !recognizeFaces.checked) {

@@ -50,15 +50,16 @@ class Model:
         img: np.ndarray,
         save_directory="../saved_faces",
         save_image=True,
-    ):
+    ) -> bool:
         faces = self.mtcnn(img)
 
         if faces is None:
             print("No face was detected.")
-            return
+            return False
 
         if len(faces) > 1:
             print("Won't save face because multiple faces were detected.")
+            return False
 
         boxes, _ = self.mtcnn.detect(img)
 
